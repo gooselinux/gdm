@@ -1,0 +1,12 @@
+diff -up gdm-2.30.2/docs/gdm.omf.in.doc-category gdm-2.30.2/docs/gdm.omf.in
+--- gdm-2.30.2/docs/gdm.omf.in.doc-category	2010-05-03 19:56:32.040182801 -0400
++++ gdm-2.30.2/docs/gdm.omf.in	2010-05-03 19:56:40.103193975 -0400
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" standalone="no"?>
+ <omf>
+   <resource>
+-    <subject category="GNOME|Applications|System Tools"/>
++    <subject category="GNOME|System"/>
+     <type>
+       user's guide
+     </type>

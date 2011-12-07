@@ -1,0 +1,108 @@
+From 86f6b36dce3de4a6768d8c9c8c31d236df45ee7a Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Tue, 20 Jul 2010 14:29:17 -0400
+Subject: [PATCH 1/2] Revert "Escape names before showing in markup"
+
+This reverts commit b4a1d0e19b22714719bdf0560b1db4ff1b43042b.
+
+The chooser widget is used by the language chooser as well.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=624847
+---
+ gui/simple-greeter/gdm-chooser-widget.c |   14 +++-----------
+ 1 files changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/gui/simple-greeter/gdm-chooser-widget.c b/gui/simple-greeter/gdm-chooser-widget.c
+index fd97cdb..d4b0a4a 100644
+--- a/gui/simple-greeter/gdm-chooser-widget.c
++++ b/gui/simple-greeter/gdm-chooser-widget.c
+@@ -1649,7 +1649,6 @@ name_cell_data_func (GtkTreeViewColumn  *tree_column,
+ {
+         gboolean is_in_use;
+         char    *name;
+-        char    *escaped;
+         char    *markup;
+ 
+         name = NULL;
+@@ -1658,22 +1657,15 @@ name_cell_data_func (GtkTreeViewColumn  *tree_column,
+                             CHOOSER_ITEM_IS_IN_USE_COLUMN, &is_in_use,
+                             CHOOSER_NAME_COLUMN, &name,
+                             -1);
+-        if (name != NULL) {
+-                escaped = g_markup_escape_text (name, -1);
+-                g_free (name);
+-        } else {
+-                escaped = NULL;
+-        }
+ 
+         if (is_in_use) {
+                 markup = g_strdup_printf ("<b>%s</b>\n"
+                                           "<i><span size=\"x-small\">%s</span></i>",
+-                                          escaped != NULL ? escaped : "(none)",
+-                                          widget->priv->in_use_message);
++                                          name ? name : "(null)", widget->priv->in_use_message);
+         } else {
+-                markup = g_strdup_printf ("%s", escaped != NULL ? escaped : "(none)");
++                markup = g_strdup_printf ("%s", name ? name : "(null)");
+         }
+-        g_free (escaped);
++        g_free (name);
+ 
+         g_object_set (cell, "markup", markup, NULL);
+         g_free (markup);
+-- 
+1.7.1
+
+
+From b2f79db8cee486964f562e818e2bf96a420e7965 Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Tue, 20 Jul 2010 14:35:46 -0400
+Subject: [PATCH 2/2] Escape user's name before adding to chooser
+
+This is like commit b4a1d0e19b22714719bdf0560b1db4ff1b43042b
+but more targeted to the user chooser.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=619588
+---
+ gui/simple-greeter/gdm-user-chooser-widget.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/gui/simple-greeter/gdm-user-chooser-widget.c b/gui/simple-greeter/gdm-user-chooser-widget.c
+index 8397f40..b7bd0a0 100644
+--- a/gui/simple-greeter/gdm-user-chooser-widget.c
++++ b/gui/simple-greeter/gdm-user-chooser-widget.c
+@@ -460,6 +460,8 @@ add_user (GdmUserChooserWidget *widget,
+         GdkPixbuf    *pixbuf;
+         char         *tooltip;
+         gboolean      is_logged_in;
++        char         *escaped_username;
++        char         *escaped_real_name;
+ 
+         if (!widget->priv->show_normal_users) {
+                 return;
+@@ -472,16 +474,20 @@ add_user (GdmUserChooserWidget *widget,
+ 
+         is_logged_in = gdm_user_is_logged_in (user);
+ 
++        escaped_username = g_markup_escape_text (gdm_user_get_user_name (user), -1);
++        escaped_real_name = g_markup_escape_text (gdm_user_get_real_name (user), -1);
+         gdm_chooser_widget_add_item (GDM_CHOOSER_WIDGET (widget),
+-                                     gdm_user_get_user_name (user),
++                                     escaped_username,
+                                      pixbuf,
+-                                     gdm_user_get_real_name (user),
++                                     escaped_real_name,
+                                      tooltip,
+                                      gdm_user_get_login_frequency (user),
+                                      is_logged_in,
+                                      FALSE,
+                                      (GdmChooserWidgetItemLoadFunc) on_item_load,
+                                      widget);
++        g_free (escaped_real_name);
++        g_free (escaped_username);
+         g_free (tooltip);
+ 
+         if (pixbuf != NULL) {
+-- 
+1.7.1
+

@@ -1,0 +1,38 @@
+From 285d6dda3ee0439349cca22346efef3392d66d48 Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Wed, 11 Aug 2010 13:36:46 -0400
+Subject: [PATCH] Fix intermittent failure to load user list
+
+The greeter was failing to show the user list if ck-history took longer
+than a second to load.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=626564
+---
+ gui/simple-greeter/gdm-user-manager.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/gui/simple-greeter/gdm-user-manager.c b/gui/simple-greeter/gdm-user-manager.c
+index 9cb00a5..fd9ac99 100644
+--- a/gui/simple-greeter/gdm-user-manager.c
++++ b/gui/simple-greeter/gdm-user-manager.c
+@@ -1562,8 +1562,8 @@ ck_history_watch (GIOChannel     *source,
+                 if (manager->priv->ck_history_watchdog_id != 0) {
+                         g_source_remove (manager->priv->ck_history_watchdog_id);
+                         manager->priv->ck_history_watchdog_id = 0;
+-                        manager->priv->ck_history_pid = 0;
+                 }
++                manager->priv->ck_history_pid = 0;
+ 
+                 maybe_set_is_loaded (manager);
+ 
+@@ -1604,6 +1604,7 @@ ck_history_watchdog (GdmUserManager *manager)
+         if (manager->priv->ck_history_pid > 0) {
+                 g_debug ("Killing ck-history process");
+                 signal_pid (manager->priv->ck_history_pid, SIGTERM);
++                manager->priv->ck_history_pid = 0;
+         }
+ 
+         manager->priv->ck_history_watchdog_id = 0;
+-- 
+1.7.1
+
