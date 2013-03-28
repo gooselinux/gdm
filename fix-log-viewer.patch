@@ -1,0 +1,28 @@
+From 377a3554c0c13ae9f603cc4dff48fc8afe55f768 Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Wed, 30 Jun 2010 07:57:38 -0400
+Subject: [PATCH] Revert "Fix bug #607738 since Vincent confirmed the fix for #607658 is going into"
+
+This reverts commit d7eb8557ff3e57cede7bb828a2e0d27415ab5b75.
+That fix goes hand in hand with a change in gnome-session 2.30,
+and we only ship gnome-session 2.28.
+---
+ daemon/gdm-welcome-session.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/daemon/gdm-welcome-session.c b/daemon/gdm-welcome-session.c
+index 9fc6717..04775ea 100644
+--- a/daemon/gdm-welcome-session.c
++++ b/daemon/gdm-welcome-session.c
+@@ -972,7 +972,7 @@ gdm_welcome_session_stop (GdmWelcomeSession *welcome_session)
+ 
+         g_debug ("GdmWelcomeSession: Stopping welcome_session");
+ 
+-        res = gdm_signal_pid (welcome_session->priv->pid, SIGTERM);
++        res = gdm_signal_pid (-1 * welcome_session->priv->pid, SIGTERM);
+         if (res < 0) {
+                 g_warning ("Unable to kill welcome session process");
+         } else {
+-- 
+1.6.5.2
+
